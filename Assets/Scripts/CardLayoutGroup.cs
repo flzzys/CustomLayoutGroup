@@ -4,23 +4,14 @@ using System.Collections.Generic;
 namespace UnityEngine.UI {
 	//卡片布局：可设定卡片尺寸和最大尺寸倍率，超过范围增加行列数
 	public class CardLayoutGroup : LayoutGroup {
-		#region Var
+		#region public变量
 
 		[Header("间距")]
-		[SerializeField] protected Vector2 m_Spacing = Vector2.zero;
-		public Vector2 spacing { get { return m_Spacing; } set { SetProperty(ref m_Spacing, value); } }
-
-		public enum Constraint { FixedColumnCount = 0, FixedRowCount = 1 }
-		[Header("限制行列数")]
-		[SerializeField] protected Constraint m_Constraint = Constraint.FixedColumnCount;
-		public Constraint constraint { get { return m_Constraint; } set { SetProperty(ref m_Constraint, value); } }
-
-		[Range(1, 10)]
-		[SerializeField] protected int m_ConstraintCount = 3;
-		public int constraintCount { get { return m_ConstraintCount; } set { SetProperty(ref m_ConstraintCount, Mathf.Max(1, value)); } }
+		public Vector2 spacing;
 
 		[Header("尺寸")]
 		public Vector2 size = new Vector2(100, 100);
+		//缩放
 		[Range(0.1f, 1)]
 		public float scale = 1;
 
@@ -40,9 +31,6 @@ namespace UnityEngine.UI {
 
 		private int[] cellColumn;
 		private int[] cellRow;
-
-		//物体偏好尺寸
-		private Vector2[] cellPreferredSizes;
 
 		//总行宽列高
 		private float totalColumnWidth;
@@ -72,7 +60,6 @@ namespace UnityEngine.UI {
 
 		//获取指定行列的位置
 		public float GetColumnPositionWithinGrid(int column) {
-
 			if (column <= 0 || column >= columns)
 				return 0;
 
@@ -83,7 +70,6 @@ namespace UnityEngine.UI {
 			return pos;
 		}
 		public float GetRowPositionWithinGrid(int row) {
-
 			if (row <= 0 || row >= rows)
 				return 0;
 
@@ -105,11 +91,15 @@ namespace UnityEngine.UI {
             }
         }
 
-		#endregion
+		//获取子物体偏好尺寸
+		Vector2 GetPreferredSize {
+            get {
+				float s = (rectTransform.rect.width - padding.horizontal - spacing.x * (columns - 1)) / columns / GetScaledSize.x;
+				return size * scale * s;
+			}
+        }
 
-		protected override void Start() {
-			
-		}
+		#endregion
 
         public void GetFirstItemPos() {
 			GameObject go = new GameObject("go");
@@ -135,7 +125,7 @@ namespace UnityEngine.UI {
 			cellIndexAtGridRef = new int[columns, rows];
 			cellColumn = new int[rectChildren.Count];
 			cellRow = new int[rectChildren.Count];
-			cellPreferredSizes = new Vector2[rectChildren.Count];
+			//cellPreferredSizes = new Vector2[rectChildren.Count];
 
 			//总行宽列高
 			totalColumnWidth = GetScaledSize.x * columns;
@@ -158,7 +148,7 @@ namespace UnityEngine.UI {
 				cellIndexAtGridRef[c, r] = cell;
 				cellColumn[cell] = c;
 				cellRow[cell] = r;
-				cellPreferredSizes[cell] = new Vector2(GetScaledSize.x, GetScaledSize.y);
+				//cellPreferredSizes[cell] = new Vector2(GetScaledSize.x, GetScaledSize.y);
 
 				// next
 				c += cNext;
@@ -206,10 +196,9 @@ namespace UnityEngine.UI {
 
         //------------------------------------------------------------------------------------------------------
         private void SetCellsAlongAxis(int axis) {
-			// Get origin
+			//源点
 			float space = (axis == 0 ? rectTransform.rect.width : rectTransform.rect.height);
 			float extraSpace = space - LayoutUtility.GetPreferredSize(rectTransform, axis);
-
 			float gridOrigin = (axis == 0 ? padding.left : padding.top);
 			if (axis == 0) {
 				if (childAlignment == TextAnchor.UpperCenter || childAlignment == TextAnchor.MiddleCenter || childAlignment == TextAnchor.LowerCenter) {
@@ -225,19 +214,25 @@ namespace UnityEngine.UI {
 				}
 			}
 
-			// Set cells
+			//物体偏好尺寸
+			float s = (rectTransform.rect.width - padding.horizontal - spacing.x * (columns - 1)) / columns / GetScaledSize.x;
+			//print(s);
+
+			//设置子物体位置
 			for (int i = 0; i < rectChildren.Count; i++) {
-				
+				//行列号
 				int colrow = (axis == 0 ? GetCellColumn(i) : GetCellRow(i));
 
 				// Column/row origin
 				float cellOrigin = gridOrigin + (axis == 0 ? GetColumnPositionWithinGrid(colrow) : GetRowPositionWithinGrid(colrow));
 
-				// Column/row size and space
+				//子物体尺寸，间距
 				float cellSpace = (axis == 0 ? GetScaledSize.x : GetScaledSize.y);
-				var child = rectChildren[i];
+				//float cellSpace = (axis == 0 ? GetPreferredSize.x : GetPreferredSize.y);
 				float cellSize = GetSize(axis);
 				float cellExtraSpace = cellSpace - cellSize;
+
+				//cellExtraSpace = 
 
 				// If cell should stretch, place there. If not, place within cell space according to cell alignment and its preferred size
 				int thisCellAlignment = 0;
