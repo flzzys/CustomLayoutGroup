@@ -35,11 +35,30 @@ public class InventoryLayoutGroup : MonoBehaviour {
         }
     }
 
+    float previousWidth;
+    int lastChildCount;
     void Update() {
+        //如果尺寸或子物体数量变化，更新
+        if (rectTransform.rect.width != previousWidth || transform.childCount != lastChildCount) {
+            //print("change");
+            previousWidth = rectTransform.rect.width;
+            lastChildCount = transform.childCount;
+        } else {
+            return;
+        }
+
+        UpdateLayout();
+    }
+
+    private void OnValidate() {
+        UpdateLayout();
+    }
+
+    void UpdateLayout() {
         //列数
         int columnCount = Mathf.FloorToInt((float)rectTransform.rect.width / (scaledSize.x + spacing.x));
-		columnCount = Mathf.Max(columnCount, 1);
-		//columnCount = Mathf.Min(columnCount, transform.childCount);
+        columnCount = Mathf.Max(columnCount, 1);
+        //columnCount = Mathf.Min(columnCount, transform.childCount);
         //行数
         int rowCount = Mathf.CeilToInt((float)rectTransform.childCount / columnCount);
 
@@ -51,7 +70,7 @@ public class InventoryLayoutGroup : MonoBehaviour {
         //实际尺寸
         actualSize = scaledSize * s;
 
-        Vector2 startingPos = new Vector2(padding.left - padding.right, padding.bottom - padding.top);
+        Vector2 startingPos = new Vector2(padding.left - padding.right, -padding.top);
         startingPos += new Vector2(rectTransform.rect.width / 2 - (actualSize.x + spacing.x) * ((float)(columnCount - 1) / 2), -actualSize.y / 2);
 
         //设置子物体位置
