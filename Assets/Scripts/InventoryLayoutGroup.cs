@@ -27,7 +27,10 @@ public class InventoryLayoutGroup : MonoBehaviour {
             return size * scale;
         }
     }
+
     Vector2 actualSize;
+    int columnCount;
+    int rowCount;
 
     RectTransform rectTransform {
         get {
@@ -56,13 +59,10 @@ public class InventoryLayoutGroup : MonoBehaviour {
 
     void UpdateLayout() {
         //列数
-        int columnCount = Mathf.FloorToInt((float)rectTransform.rect.width / (scaledSize.x + spacing.x));
+        columnCount = Mathf.FloorToInt((float)rectTransform.rect.width / (scaledSize.x + spacing.x));
         columnCount = Mathf.Max(columnCount, 1);
-        //columnCount = Mathf.Min(columnCount, transform.childCount);
         //行数
-        int rowCount = Mathf.CeilToInt((float)rectTransform.childCount / columnCount);
-
-        //print($"列数: {columnCount}, 行数: {rowCount}");
+        rowCount = Mathf.CeilToInt((float)rectTransform.childCount / columnCount);
 
         //子物体偏好尺寸倍率
         float s = (rectTransform.rect.width - padding.horizontal - spacing.x * (columnCount - 1)) / columnCount / scaledSize.x;
@@ -72,13 +72,11 @@ public class InventoryLayoutGroup : MonoBehaviour {
 
         Vector2 startingPos = new Vector2(padding.left - padding.right, -padding.top);
         startingPos += new Vector2(rectTransform.rect.width / 2 - (actualSize.x + spacing.x) * ((float)(columnCount - 1) / 2), -actualSize.y / 2);
-
         //设置子物体位置
         int index = 0;
         foreach (Transform child in transform) {
             int column = index % columnCount;
             int row = index / columnCount;
-            //print(column + ", " + row);
 
             child.GetComponent<RectTransform>().sizeDelta = size;
             child.localScale = Vector3.one * scale * s;
@@ -98,5 +96,15 @@ public class InventoryLayoutGroup : MonoBehaviour {
         float totalPreferredHeight = padding.vertical + actualSize.y * rowCount + spacing.y * (rowCount - 1);
         var rect = rectTransform;
         rect.sizeDelta = new Vector2(rect.sizeDelta.x, totalPreferredHeight);
+    }
+
+    public Vector2 GetFirstItemPos() {
+        UpdateLayout();
+        Vector2 pos = new Vector2(actualSize.x, -actualSize.y) / 2 + new Vector2(padding.left, -padding.top);
+        
+        return pos;
+    }
+    public Vector2 GetActualSize() {
+        return actualSize;
     }
 }
