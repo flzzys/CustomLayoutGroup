@@ -9,42 +9,71 @@ public class Test : MonoBehaviour {
 
     public UIMover uiMover;
 
-    private void Update() {
-        if (Input.GetKeyDown("1")) {
-            //uiMover.target.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
-            //uiMover.target.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
-            //uiMover.target.GetComponent<RectTransform>().sizeDelta = inventoryLayoutGroup.GetActualSize();
-            //uiMover.target.GetComponent<RectTransform>().anchoredPosition = inventoryLayoutGroup.GetFirstItemPos();
-            uiMover.Move(0, 1);
+    public Sprite sprite;
 
-            //Instantiate(itemPrefab, inventoryLayoutGroup.transform);
+    [Header("尺寸变化_显示")]
+    public UXMovement movement_Size_Show;
+    [Header("位置变化_显示")]
+    public UXMovement movement_Pos_Show;
 
-        }
-        if (Input.GetKeyDown("2")) {
-            uiMover.Move(1, 0);
-        }
+    [Header("尺寸变化_隐藏")]
+    public UXMovement movement_Size_Hide;
+    [Header("位置变化_隐藏")]
+    public UXMovement movement_Pos_Hide;
 
-        //QWE();
+    IEnumerator Start() {
+        GameObject go;
 
-    }
-
-    GameObject go;
-    void QWE() {
-        if (go) {
-            Destroy(go);
+        for (int i = 0; i < 8; i++) {
+            go = new GameObject("qwe");
+            go.transform.SetParent(inventoryLayoutGroup.transform);
+            go.AddComponent<RectTransform>();
+            go.AddComponent<Image>().sprite = sprite;
         }
 
         Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
+        Vector2 size = inventoryLayoutGroup.GetActualSize();
 
-        go = new GameObject("qwe");
-        go.AddComponent<RectTransform>();
-        go.AddComponent<Image>().color = Color.black;
-        go.transform.SetParent(FindObjectOfType<Canvas>().transform);
+        //uiMover.target.anchoredPosition = pos;
+        uiMover.target.transform.position = pos;
+        uiMover.target.sizeDelta = size;
 
-        go.transform.localScale = Vector3.one;
-        go.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
-        go.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
-        go.GetComponent<RectTransform>().anchoredPosition = pos;
-        go.GetComponent<RectTransform>().sizeDelta = inventoryLayoutGroup.GetActualSize();
+        yield return new WaitForSeconds(.5f);
+
+        Vector2 layoutSize = uiMover.rectTrasnfroms[1].sizeDelta / size;
+        print(layoutSize);
+
+        inventoryLayoutGroup.GetComponentInParent<ScrollRect>().transform.localScale = layoutSize;
+        Vector2 layoutPos = uiMover.rectTrasnfroms[1].position;
+        print((Vector2)Camera.main.ScreenToWorldPoint(new Vector2(inventoryLayoutGroup.padding.left, inventoryLayoutGroup.padding.top)));
+        layoutPos += (Vector2)Camera.main.ScreenToWorldPoint(new Vector2(inventoryLayoutGroup.padding.left, inventoryLayoutGroup.padding.top));
+        inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>().position = layoutPos;
+        //inventoryLayoutGroup.GetComponentInParent<ScrollRect>().transform.position = layoutPos;
     }
+
+    private void Update() {
+        if (Input.GetKeyDown("1")) {
+            Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
+            Vector2 size = inventoryLayoutGroup.GetActualSize();
+            uiMover.MoveWithScale(new UIPos(uiMover.rectTrasnfroms[1]), new UIPos { pos = pos, size = size }, movement_Pos_Show, movement_Size_Show);
+        }
+        if (Input.GetKeyDown("2")) {
+            Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
+            Vector2 size = inventoryLayoutGroup.GetActualSize();
+            uiMover.MoveWithScale(new UIPos { pos = pos, size = size }, new UIPos(uiMover.rectTrasnfroms[1]), movement_Pos_Show, movement_Size_Show);
+        }
+        if (Input.GetKeyDown("3")) {
+            uiMover.target.transform.localScale = Vector3.one;
+            uiMover.Move(0, 1, movement_Pos_Show, movement_Size_Show);
+        }
+        if (Input.GetKeyDown("4")) {
+           uiMover.target.transform.localScale = Vector3.one;
+           uiMover.Move(1, 0, movement_Pos_Hide, movement_Size_Hide);
+        }
+
+        if (Input.GetKeyDown("q")) {
+            
+        }
+    }
+
 }

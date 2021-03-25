@@ -38,6 +38,12 @@ public class InventoryLayoutGroup : MonoBehaviour {
         }
     }
 
+    private void Awake() {
+        UpdateLayout();
+    }
+
+    #region 更新布局
+
     float previousWidth;
     int lastChildCount;
     void Update() {
@@ -98,12 +104,17 @@ public class InventoryLayoutGroup : MonoBehaviour {
         rect.sizeDelta = new Vector2(rect.sizeDelta.x, totalPreferredHeight);
     }
 
+    #endregion
+
+    //获取第一个物体位置
     public Vector2 GetFirstItemPos() {
         UpdateLayout();
-        Vector2 pos = new Vector2(actualSize.x, -actualSize.y) / 2 + new Vector2(padding.left, -padding.top);
-        
+
+        var pos = transform.GetChild(0).transform.position;
+
         return pos;
     }
+
     public Vector2 GetActualSize() {
         return actualSize;
     }

@@ -4,35 +4,52 @@ using UnityEngine;
 using DG.Tweening;
 using System;
 
+//UI位置
+public struct UIPos {
+    public Vector2 pos;
+    public Vector2 size;
+
+    public UIPos(RectTransform rect) {
+        pos = rect.transform.position;
+        size = rect.sizeDelta;
+    }
+}
+
 public class UIMover : MonoBehaviour {
     [Header("初始位置")]
     public RectTransform[] rectTrasnfroms;
-    public Rect rects;
 
     [Header("移动物体")]
     public RectTransform target;
 
-    [Header("尺寸变化_显示")]
-    public UXMovement movement_Size_Show;
-    [Header("位置变化_显示")]
-    public UXMovement movement_Pos_Show;
-
-    [Header("尺寸变化_隐藏")]
-    public UXMovement movement_Size_Hide;
-    [Header("位置变化_隐藏")]
-    public UXMovement movement_Pos_Hide;
-
-    public void Move(Rect from, Rect to, Action onComplete = null) {
+    //移动UI，改变尺寸
+    void Move(UIPos from, UIPos to, UXMovement movement_Size, UXMovement movement_Pos, Action onComplete = null) {
         target.sizeDelta = from.size;
-        target.position = from.position;
+        target.position = from.pos;
 
-        target.DOSizeDelta(to.size, movement_Size_Show.duration).SetEase(movement_Size_Show.curve);
-        target.DOMove(to.position, movement_Pos_Show.duration).SetEase(movement_Pos_Show.curve).OnComplete(() => {
+        target.DOSizeDelta(to.size, movement_Size.duration).SetEase(movement_Size.curve);
+        target.DOMove(to.pos, movement_Pos.duration).SetEase(movement_Pos.curve).OnComplete(() => {
             onComplete?.Invoke();
         });
     }
 
-    public void Move(int fromIndex, int toIndex, Action onComplete = null) {
-        Move(rectTrasnfroms[fromIndex].rect, rectTrasnfroms[toIndex].rect, onComplete);
+    //移动UI，改变缩放而非尺寸
+    public void MoveWithScale(UIPos from, UIPos to, UXMovement movement_Size, UXMovement movement_Pos, Action onComplete = null) {
+        Vector2 fromSize = from.size / target.sizeDelta;
+        target.localScale = fromSize;
+        target.position = from.pos;
+
+        Vector2 toSize = to.size / target.sizeDelta;
+        target.DOScale(toSize, movement_Size.duration).SetEase(movement_Size.curve);
+        target.DOMove(to.pos, movement_Pos.duration).SetEase(movement_Pos.curve).OnComplete(() => {
+            onComplete?.Invoke();
+        });
+    }
+
+    public void Move(int fromIndex, int toIndex, UXMovement movement_Size, UXMovement movement_Pos, Action onComplete = null) {
+        Move(new UIPos(rectTrasnfroms[fromIndex]), new UIPos(rectTrasnfroms[toIndex]), movement_Pos, movement_Size, onComplete);
+    }
+    public void MoveWithScale(int fromIndex, int toIndex, UXMovement movement_Pos, UXMovement movement_Size, Action onComplete = null) {
+        MoveWithScale(new UIPos(rectTrasnfroms[fromIndex]), new UIPos(rectTrasnfroms[toIndex]), movement_Pos, movement_Size, onComplete);
     }
 }
