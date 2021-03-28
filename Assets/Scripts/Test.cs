@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class Test : MonoBehaviour {
     public InventoryLayoutGroup inventoryLayoutGroup;
@@ -21,6 +22,8 @@ public class Test : MonoBehaviour {
     [Header("位置变化_隐藏")]
     public UXMovement movement_Pos_Hide;
 
+    Rect startRect, endRect;
+
     IEnumerator Start() {
         GameObject go;
 
@@ -31,25 +34,35 @@ public class Test : MonoBehaviour {
             go.AddComponent<Image>().sprite = sprite;
         }
 
-        Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
+
+        RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
+
+        RectTransform from = uiMover.rectTrasnfroms[1];
+        RectTransform to = uiMover.rectTrasnfroms[2];
+
+        //Size
         Vector2 size = inventoryLayoutGroup.GetActualSize();
+        Vector2 scale = from.sizeDelta / size;
 
-        //uiMover.target.anchoredPosition = pos;
-        uiMover.target.transform.position = pos;
-        uiMover.target.sizeDelta = size;
+        //Pos
+        Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
+        Vector2 offset = pos - (Vector2)scroll.position;
+        offset *= scale;
+        Vector2 targetPos = (Vector2)from.position - offset;
 
-        yield return new WaitForSeconds(.5f);
+        startRect = new Rect {
+            size = scroll.rect.size * scale,
+            position = targetPos,
+        };
+        endRect = new Rect {
+            size = to.rect.size,
+            position = to.position
+        };
 
-        Vector2 layoutSize = uiMover.rectTrasnfroms[1].sizeDelta / size;
-        print(layoutSize);
-
-        inventoryLayoutGroup.GetComponentInParent<ScrollRect>().transform.localScale = layoutSize;
-        Vector2 layoutPos = uiMover.rectTrasnfroms[1].position;
-        print((Vector2)Camera.main.ScreenToWorldPoint(new Vector2(inventoryLayoutGroup.padding.left, inventoryLayoutGroup.padding.top)));
-        layoutPos += (Vector2)Camera.main.ScreenToWorldPoint(new Vector2(inventoryLayoutGroup.padding.left, inventoryLayoutGroup.padding.top));
-        inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>().position = layoutPos;
-        //inventoryLayoutGroup.GetComponentInParent<ScrollRect>().transform.position = layoutPos;
+        yield break;
     }
+
+    public RectTransform r;
 
     private void Update() {
         if (Input.GetKeyDown("1")) {
@@ -72,7 +85,56 @@ public class Test : MonoBehaviour {
         }
 
         if (Input.GetKeyDown("q")) {
-            
+            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
+            Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
+            Vector2 size = inventoryLayoutGroup.GetActualSize();
+            print(size);
+
+            RectTransform target = uiMover.rectTrasnfroms[1];
+
+            Vector2 scale = target.sizeDelta / size;
+            print(scale);
+            //scroll.localScale = scale;
+
+            Vector2 offset = pos - (Vector2)scroll.position;
+            offset *= scale;
+            Vector2 targetPos = (Vector2)target.position - offset;
+
+            //uiMover.MoveWithScale(new UIPos { pos = (Vector2)target.position - offset, size = scale }, new UIPos(uiMover.rectTrasnfroms[2]), movement_Pos_Show, movement_Size_Show);
+
+            scroll.DOMove(targetPos, .5f);
+            scroll.DOScale(scale, .5f);
+        }
+        if (Input.GetKeyDown("w")) {
+            RectTransform target = uiMover.rectTrasnfroms[2];
+
+            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
+            scroll.DOMove(target.transform.position, .5f);
+            scroll.DOScale(Vector2.one, .5f);
+
+            print(target.rect.size);
+        }
+
+        if (Input.GetKeyDown(KeyCode.A)) {
+            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
+
+            MoverParams moverParams = new MoverParams {
+                startRect = startRect,
+                endRect = endRect,
+                changeScale = true
+            };
+            UIMover.Move(scroll, moverParams);
+        }
+
+        if (Input.GetKeyDown(KeyCode.S)) {
+            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
+
+            MoverParams moverParams = new MoverParams {
+                startRect = endRect,
+                endRect = startRect,
+                changeScale = true
+            };
+            UIMover.Move(scroll, moverParams);
         }
     }
 

@@ -42,22 +42,23 @@ public class InventoryLayoutGroup : MonoBehaviour {
         UpdateLayout();
     }
 
-    #region 更新布局
-
-    float previousWidth;
-    int lastChildCount;
     void Update() {
         //如果尺寸或子物体数量变化，更新
         if (rectTransform.rect.width != previousWidth || transform.childCount != lastChildCount) {
-            //print("change");
             previousWidth = rectTransform.rect.width;
             lastChildCount = transform.childCount;
-        } else {
+        }
+        else {
             return;
         }
 
         UpdateLayout();
     }
+
+    #region 更新布局
+
+    float previousWidth;
+    int lastChildCount;
 
     private void OnValidate() {
         UpdateLayout();
@@ -118,4 +119,6 @@ public class InventoryLayoutGroup : MonoBehaviour {
     public Vector2 GetActualSize() {
         return actualSize;
     }
+
+    
 }
