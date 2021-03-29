@@ -22,6 +22,8 @@ public class Test : MonoBehaviour {
 
     public RectTransform[] poses;
 
+    public GameObject prefab_Item;
+
     private void Awake() {
         card.sizeDelta = poses[0].sizeDelta;
         card.position = poses[0].position;
@@ -93,6 +95,11 @@ public class Test : MonoBehaviour {
         if (Input.GetKeyDown("a")) {
             RectTransform target = panel_CardSet.inventoryLayoutGroup.transform.GetChild(2).GetComponent<RectTransform>();
 
+            lastRect = new Rect {
+                position = target.position,
+                size = target.rect.size,
+            };
+
             UIMover.Move(target, new MoverParams {
                 endRect = new Rect {
                     position = poses[0].position,
@@ -100,27 +107,25 @@ public class Test : MonoBehaviour {
                 },
                 changeScale = true
             });
+
         }
         if (Input.GetKeyDown("s")) {
             RectTransform target = panel_CardSet.inventoryLayoutGroup.transform.GetChild(2).GetComponent<RectTransform>();
 
             UIMover.Move(target, new MoverParams {
-                endRect = new Rect {
-                    position = poses[0].position,
-                    size = poses[0].sizeDelta
-                },
+                endRect = lastRect,
                 changeScale = true
             });
         }
     }
 
+    Rect lastRect;
+
     //测试物体
     public Sprite sprite;
     void CreateTestObject() {
         for (int i = 0; i < 8; i++) {
-            GameObject go = new GameObject("qwe");
-            go.transform.SetParent(panel_CardSet.inventoryLayoutGroup.transform);
-            go.AddComponent<RectTransform>();
+            GameObject go = Instantiate(prefab_Item, panel_CardSet.inventoryLayoutGroup.transform);
             go.AddComponent<Image>().sprite = sprite;
         }
     }

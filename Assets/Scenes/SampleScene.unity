@@ -388,6 +388,8 @@ MonoBehaviour:
   poses:
   - {fileID: 169488332}
   - {fileID: 2077610582}
+  prefab_Item: {fileID: 1395770630661304910, guid: d93c7be03ea8b5c40bf447f390f1b685,
+    type: 3}
   sprite: {fileID: 21300000, guid: d82b9c9ea6df8be43b120035a8090fdf, type: 3}
 --- !u!4 &471143474
 Transform:
