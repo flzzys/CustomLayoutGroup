@@ -77,15 +77,35 @@ public class UIMover : MonoBehaviour {
         }
         //改变Scale
         else {
+            //如果没有设置
+            if (moverParams.startRect == default(Rect)) {
+                moverParams.startRect = new Rect {
+                    position = target.position,
+                    size = target.rect.size
+                };
+            }
+            if (moverParams.endRect == default(Rect)) {
+                moverParams.endRect = new Rect {
+                    position = target.position,
+                    size = target.rect.size
+                };
+            }
+
             //Scale
-            Vector2 fromScale = moverParams.startRect.size / target.rect.size;
+            Vector2 fromScale = moverParams.startRect.size / GetRealSize(target);
             target.localScale = fromScale;
-            Vector2 toScale = moverParams.endRect.size / target.rect.size;
+            Vector2 toScale = moverParams.endRect.size / GetRealSize(target);
             target.DOScale(toScale, .5f);
 
             //Pos
             target.position = moverParams.startRect.position;
-            target.DOMove(moverParams.endRect.position, .5f);
+            target.DOMove(moverParams.endRect.position, .5f).OnComplete(() => {
+                onComplete?.Invoke();
+            });
         }
+    }
+
+    static Vector2 GetRealSize(RectTransform rectTransform) {
+        return rectTransform.rect.size;
     }
 }

@@ -5,137 +5,123 @@ using UnityEngine.UI;
 using DG.Tweening;
 
 public class Test : MonoBehaviour {
-    public InventoryLayoutGroup inventoryLayoutGroup;
     public GameObject itemPrefab;
 
     public UIMover uiMover;
 
+    public RectTransform card;
+
+    public Panel_CardSet prefab_CardSet;
+    Panel_CardSet panel_CardSet;
+
+    [Header("变化_显示")]
+    public UXMovement movement_Show;
+
+    [Header("变化_隐藏")]
+    public UXMovement movement_Hide;
+
+    public RectTransform[] poses;
+
+    private void Awake() {
+        card.sizeDelta = poses[0].sizeDelta;
+        card.position = poses[0].position;
+
+        panel_CardSet = Instantiate(prefab_CardSet, FindObjectOfType<Canvas>().transform);
+
+        cardStartPos = new Rect {
+            position = poses[0].position,
+            size = poses[0].rect.size
+        };
+    }
+
+    Rect cardStartPos;
+    Rect cardEndPos;
+
+    private void Update() {
+        if (Input.GetKeyDown(KeyCode.Q)) {
+            panel_CardSet.gameObject.SetActive(true);
+
+            if(panel_CardSet.inventoryLayoutGroup.transform.childCount == 0) {
+                CreateTestObject();
+                panel_CardSet.InitPos(poses);
+
+                cardEndPos = new Rect {
+                    position = panel_CardSet.inventoryLayoutGroup.GetFirstItemPos(),
+                    size = panel_CardSet.inventoryLayoutGroup.GetActualSize()
+                };
+            }
+
+            //移动Card
+            UIMover.Move(card, new MoverParams {
+                startRect = cardStartPos,
+                endRect = cardEndPos,
+                changeScale = true
+            }, () => {
+                //隐藏Card
+                //card.gameObject.SetActive(false);
+            });
+
+            card.GetComponent<CanvasGroup>().DOFade(0, .5f);
+            panel_CardSet.GetComponent<CanvasGroup>().DOFade(1, .5f);
+
+            //移动CardSet
+            panel_CardSet.Move(true);
+        }
+
+        if (Input.GetKeyDown(KeyCode.W)) {
+            panel_CardSet.Move(false);
+
+            //移动Card
+            card.gameObject.SetActive(true);
+
+            UIMover.Move(card, new MoverParams {
+                startRect = new Rect {
+                    position = card.position,
+                    size = card.rect.size * card.localScale
+                },
+                endRect = cardStartPos,
+                changeScale = true
+            }, () => {
+                //panel_CardSet.gameObject.SetActive(false);
+            });
+
+            card.GetComponent<CanvasGroup>().DOFade(1, .5f);
+            panel_CardSet.GetComponent<CanvasGroup>().DOFade(0, .5f);
+
+        }
+
+        if (Input.GetKeyDown("a")) {
+            RectTransform target = panel_CardSet.inventoryLayoutGroup.transform.GetChild(2).GetComponent<RectTransform>();
+
+            UIMover.Move(target, new MoverParams {
+                endRect = new Rect {
+                    position = poses[0].position,
+                    size = poses[0].sizeDelta
+                },
+                changeScale = true
+            });
+        }
+        if (Input.GetKeyDown("s")) {
+            RectTransform target = panel_CardSet.inventoryLayoutGroup.transform.GetChild(2).GetComponent<RectTransform>();
+
+            UIMover.Move(target, new MoverParams {
+                endRect = new Rect {
+                    position = poses[0].position,
+                    size = poses[0].sizeDelta
+                },
+                changeScale = true
+            });
+        }
+    }
+
+    //测试物体
     public Sprite sprite;
-
-    [Header("尺寸变化_显示")]
-    public UXMovement movement_Size_Show;
-    [Header("位置变化_显示")]
-    public UXMovement movement_Pos_Show;
-
-    [Header("尺寸变化_隐藏")]
-    public UXMovement movement_Size_Hide;
-    [Header("位置变化_隐藏")]
-    public UXMovement movement_Pos_Hide;
-
-    Rect startRect, endRect;
-
-    IEnumerator Start() {
-        GameObject go;
-
+    void CreateTestObject() {
         for (int i = 0; i < 8; i++) {
-            go = new GameObject("qwe");
-            go.transform.SetParent(inventoryLayoutGroup.transform);
+            GameObject go = new GameObject("qwe");
+            go.transform.SetParent(panel_CardSet.inventoryLayoutGroup.transform);
             go.AddComponent<RectTransform>();
             go.AddComponent<Image>().sprite = sprite;
         }
-
-
-        RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
-
-        RectTransform from = uiMover.rectTrasnfroms[1];
-        RectTransform to = uiMover.rectTrasnfroms[2];
-
-        //Size
-        Vector2 size = inventoryLayoutGroup.GetActualSize();
-        Vector2 scale = from.sizeDelta / size;
-
-        //Pos
-        Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
-        Vector2 offset = pos - (Vector2)scroll.position;
-        offset *= scale;
-        Vector2 targetPos = (Vector2)from.position - offset;
-
-        startRect = new Rect {
-            size = scroll.rect.size * scale,
-            position = targetPos,
-        };
-        endRect = new Rect {
-            size = to.rect.size,
-            position = to.position
-        };
-
-        yield break;
     }
-
-    public RectTransform r;
-
-    private void Update() {
-        if (Input.GetKeyDown("1")) {
-            Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
-            Vector2 size = inventoryLayoutGroup.GetActualSize();
-            uiMover.MoveWithScale(new UIPos(uiMover.rectTrasnfroms[1]), new UIPos { pos = pos, size = size }, movement_Pos_Show, movement_Size_Show);
-        }
-        if (Input.GetKeyDown("2")) {
-            Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
-            Vector2 size = inventoryLayoutGroup.GetActualSize();
-            uiMover.MoveWithScale(new UIPos { pos = pos, size = size }, new UIPos(uiMover.rectTrasnfroms[1]), movement_Pos_Show, movement_Size_Show);
-        }
-        if (Input.GetKeyDown("3")) {
-            uiMover.target.transform.localScale = Vector3.one;
-            uiMover.Move(0, 1, movement_Pos_Show, movement_Size_Show);
-        }
-        if (Input.GetKeyDown("4")) {
-           uiMover.target.transform.localScale = Vector3.one;
-           uiMover.Move(1, 0, movement_Pos_Hide, movement_Size_Hide);
-        }
-
-        if (Input.GetKeyDown("q")) {
-            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
-            Vector2 pos = inventoryLayoutGroup.GetFirstItemPos();
-            Vector2 size = inventoryLayoutGroup.GetActualSize();
-            print(size);
-
-            RectTransform target = uiMover.rectTrasnfroms[1];
-
-            Vector2 scale = target.sizeDelta / size;
-            print(scale);
-            //scroll.localScale = scale;
-
-            Vector2 offset = pos - (Vector2)scroll.position;
-            offset *= scale;
-            Vector2 targetPos = (Vector2)target.position - offset;
-
-            //uiMover.MoveWithScale(new UIPos { pos = (Vector2)target.position - offset, size = scale }, new UIPos(uiMover.rectTrasnfroms[2]), movement_Pos_Show, movement_Size_Show);
-
-            scroll.DOMove(targetPos, .5f);
-            scroll.DOScale(scale, .5f);
-        }
-        if (Input.GetKeyDown("w")) {
-            RectTransform target = uiMover.rectTrasnfroms[2];
-
-            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
-            scroll.DOMove(target.transform.position, .5f);
-            scroll.DOScale(Vector2.one, .5f);
-
-            print(target.rect.size);
-        }
-
-        if (Input.GetKeyDown(KeyCode.A)) {
-            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
-
-            MoverParams moverParams = new MoverParams {
-                startRect = startRect,
-                endRect = endRect,
-                changeScale = true
-            };
-            UIMover.Move(scroll, moverParams);
-        }
-
-        if (Input.GetKeyDown(KeyCode.S)) {
-            RectTransform scroll = inventoryLayoutGroup.GetComponentInParent<ScrollRect>().GetComponent<RectTransform>();
-
-            MoverParams moverParams = new MoverParams {
-                startRect = endRect,
-                endRect = startRect,
-                changeScale = true
-            };
-            UIMover.Move(scroll, moverParams);
-        }
-    }
-
 }
