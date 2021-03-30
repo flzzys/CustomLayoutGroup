@@ -24,10 +24,6 @@ public class MoverParams {
     public bool changeScale;
 
     public UXMovement movement;
-
-    //public MoverParams(RectTransform rect) {
-        
-    //}
 }
 
 public class UIMover : MonoBehaviour {
@@ -95,17 +91,18 @@ public class UIMover : MonoBehaviour {
             Vector2 fromScale = moverParams.startRect.size / GetRealSize(target);
             target.localScale = fromScale;
             Vector2 toScale = moverParams.endRect.size / GetRealSize(target);
-            target.DOScale(toScale, .5f);
+            target.DOScale(toScale, moverParams.movement.duration).SetEase(moverParams.movement.curve);
 
             //Pos
             target.position = moverParams.startRect.position;
-            target.DOMove(moverParams.endRect.position, .5f).OnComplete(() => {
+            target.DOMove(moverParams.endRect.position, moverParams.movement.duration).SetEase(moverParams.movement.curve).OnComplete(() => {
                 onComplete?.Invoke();
             });
         }
     }
 
     static Vector2 GetRealSize(RectTransform rectTransform) {
+        //return rectTransform.rect.size * rectTransform.localScale;
         return rectTransform.rect.size;
     }
 }

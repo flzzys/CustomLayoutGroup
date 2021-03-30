@@ -53,7 +53,8 @@ public class Test : MonoBehaviour {
             UIMover.Move(card, new MoverParams {
                 startRect = cardStartPos,
                 endRect = cardEndPos,
-                changeScale = true
+                changeScale = true,
+                movement = movement_Show
             }, () => {
                 //隐藏Card
                 card.gameObject.SetActive(false);
@@ -82,9 +83,10 @@ public class Test : MonoBehaviour {
                     size = card.rect.size * card.localScale
                 },
                 endRect = cardStartPos,
-                changeScale = true
+                changeScale = true,
+                movement = movement_Hide
             }, () => {
-                
+
             });
 
             card.GetComponent<CanvasGroup>().DOFade(1, .5f);
