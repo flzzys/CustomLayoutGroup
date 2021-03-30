@@ -28,8 +28,7 @@ public class Test : MonoBehaviour {
         card.sizeDelta = poses[0].sizeDelta;
         card.position = poses[0].position;
 
-        panel_CardSet = Instantiate(prefab_CardSet, FindObjectOfType<Canvas>().transform);
-
+        //初始化
         cardStartPos = new Rect {
             position = poses[0].position,
             size = poses[0].rect.size
@@ -37,21 +36,18 @@ public class Test : MonoBehaviour {
     }
 
     Rect cardStartPos;
-    Rect cardEndPos;
 
     private void Update() {
         if (Input.GetKeyDown(KeyCode.Q)) {
-            panel_CardSet.gameObject.SetActive(true);
+            panel_CardSet = Instantiate(prefab_CardSet, FindObjectOfType<Canvas>().transform);
 
-            if(panel_CardSet.inventoryLayoutGroup.transform.childCount == 0) {
-                CreateTestObject();
-                panel_CardSet.InitPos(poses);
+            CreateTestObject();
+            panel_CardSet.InitPos(poses);
 
-                cardEndPos = new Rect {
-                    position = panel_CardSet.inventoryLayoutGroup.GetFirstItemPos(),
-                    size = panel_CardSet.inventoryLayoutGroup.GetActualSize()
-                };
-            }
+            Rect cardEndPos = new Rect {
+                position = panel_CardSet.inventoryLayoutGroup.GetFirstItemPos(),
+                size = panel_CardSet.inventoryLayoutGroup.GetActualSize()
+            };
 
             //移动Card
             UIMover.Move(card, new MoverParams {
@@ -60,18 +56,22 @@ public class Test : MonoBehaviour {
                 changeScale = true
             }, () => {
                 //隐藏Card
-                //card.gameObject.SetActive(false);
+                card.gameObject.SetActive(false);
             });
 
             card.GetComponent<CanvasGroup>().DOFade(0, .5f);
-            panel_CardSet.GetComponent<CanvasGroup>().DOFade(1, .5f);
 
             //移动CardSet
             panel_CardSet.Move(true);
+            panel_CardSet.GetComponent<CanvasGroup>().DOFade(1, .5f);
         }
 
         if (Input.GetKeyDown(KeyCode.W)) {
+            //移动CardSet
             panel_CardSet.Move(false);
+            panel_CardSet.GetComponent<CanvasGroup>().DOFade(0, .5f).OnComplete(() => {
+                Destroy(panel_CardSet.gameObject);
+            });
 
             //移动Card
             card.gameObject.SetActive(true);
@@ -84,20 +84,20 @@ public class Test : MonoBehaviour {
                 endRect = cardStartPos,
                 changeScale = true
             }, () => {
-                //panel_CardSet.gameObject.SetActive(false);
+                
             });
 
             card.GetComponent<CanvasGroup>().DOFade(1, .5f);
-            panel_CardSet.GetComponent<CanvasGroup>().DOFade(0, .5f);
 
         }
 
         if (Input.GetKeyDown("a")) {
             RectTransform target = panel_CardSet.inventoryLayoutGroup.transform.GetChild(2).GetComponent<RectTransform>();
+            target.GetComponent<Canvas>().sortingOrder = 1;
 
             lastRect = new Rect {
                 position = target.position,
-                size = target.rect.size,
+                size = target.rect.size * target.localScale,
             };
 
             UIMover.Move(target, new MoverParams {
@@ -111,10 +111,12 @@ public class Test : MonoBehaviour {
         }
         if (Input.GetKeyDown("s")) {
             RectTransform target = panel_CardSet.inventoryLayoutGroup.transform.GetChild(2).GetComponent<RectTransform>();
-
+            
             UIMover.Move(target, new MoverParams {
                 endRect = lastRect,
                 changeScale = true
+            }, () => {
+                target.GetComponent<Canvas>().sortingOrder = 0;
             });
         }
     }
@@ -126,7 +128,7 @@ public class Test : MonoBehaviour {
     void CreateTestObject() {
         for (int i = 0; i < 8; i++) {
             GameObject go = Instantiate(prefab_Item, panel_CardSet.inventoryLayoutGroup.transform);
-            go.AddComponent<Image>().sprite = sprite;
+            go.GetComponent<Image>().sprite = sprite;
         }
     }
 }

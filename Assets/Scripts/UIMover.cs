@@ -81,7 +81,7 @@ public class UIMover : MonoBehaviour {
             if (moverParams.startRect == default(Rect)) {
                 moverParams.startRect = new Rect {
                     position = target.position,
-                    size = target.rect.size
+                    size = target.rect.size * target.localScale
                 };
             }
             if (moverParams.endRect == default(Rect)) {
